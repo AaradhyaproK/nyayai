@@ -1,0 +1,124 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role.",
+          "enum": ["user", "lawyer"]
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "The user's contact number."
+        },
+        "location": {
+          "type": "string",
+          "description": "The user's location or city."
+        },
+        "specialization": {
+          "type": "string",
+          "description": "The lawyer's primary area of specialization."
+        },
+        "experience": {
+          "type": "number",
+          "description": "The lawyer's years of experience."
+        },
+        "education": {
+          "type": "string",
+          "description": "The lawyer's educational background."
+        },
+        "lawyerType": {
+          "type": "array",
+          "description": "The types of law the lawyer practices.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "rating": {
+          "type": "number",
+          "description": "The lawyer's rating."
+        },
+        "imageId": {
+          "type": "string",
+          "description": "The ID of the user's avatar image."
+        }
+      },
+      "required": ["email", "displayName", "role", "contactNumber", "location"]
+    },
+    "Case": {
+      "title": "Case",
+      "description": "Represents a legal case initiated by a user with a lawyer.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The ID of the user who initiated the case." },
+        "lawyerId": { "type": "string", "description": "The ID of the lawyer assigned to the case." },
+        "userDisplayName": { "type": "string" },
+        "lawyerDisplayName": { "type": "string" },
+        "description": { "type": "string", "description": "The initial description of the legal issue." },
+        "status": { "type": "string", "enum": ["pending", "active", "closed"], "description": "The current status of the case." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the case was created." },
+        "nextHearingDate": { "type": "string", "format": "date-time", "description": "The date for the next court hearing." },
+        "caseNotes": { "type": "string", "description": "Private notes for the lawyer regarding the case." },
+        "documents": {
+          "type": "array",
+          "description": "A list of documents associated with the case.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        },
+        "userRequestsToEnd": { "type": "boolean", "description": "True if the user has requested to end the case." },
+        "lawyerRequestsToEnd": { "type": "boolean", "description": "True if the lawyer has requested to end the case." },
+        "analysisReport": {
+          "type": "string",
+          "description": "A JSON string of the AI case analysis report."
+        }
+      },
+      "required": ["userId", "lawyerId", "description", "status", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Represents a message in a case chat.",
+      "type": "object",
+      "properties": {
+        "caseId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["caseId", "senderId", "text", "timestamp"]
+    }
+  },
+  "auth": {
+    "providers": ["email"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "Stores user profile information, keyed by user ID."
+    },
+    "/cases/{caseId}": {
+      "schema": { "$ref": "#/backend/entities/Case" },
+      "description": "Stores legal case data."
+    },
+    "/cases/{caseId}/messages/{messageId}": {
+      "schema": { "$ref": "#/backend/entities/ChatMessage" },
+      "description": "Stores chat messages for a specific case."
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "placeholderImages": [
+    {
+      "id": "user-avatar-1",
+      "description": "A placeholder avatar image for a user.",
+      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njk1MTg4NDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "A placeholder avatar image for a lawyer.",
+      "imageUrl": "https://images.unsplash.com/photo-1662040804718-aac4e77e9971?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cHJvZmVzc2lvbmFsJTIwcGVyc29ufGVufDB8fHx8MTc2OTQ4NTkwNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "professional person"
+    },
+    {
+      "id": "user-avatar-3",
+      "description": "A placeholder avatar image for a judge.",
+      "imageUrl": "https://images.unsplash.com/photo-1768899817970-a782c7de8b0b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm9ybWFsJTIwcGVyc29ufGVufDB8fHx8MTc2OTU1NDY0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "formal person"
+    },
+    {
+      "id": "lawyer-1",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1748288166888-f1bd5d6ef9ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGF3eWVyJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzY5NDQ1NjU0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lawyer portrait"
+    },
+    {
+      "id": "lawyer-2",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1595211877493-41a4e5f236b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njk1NTAwMjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "professional portrait"
+    },
+    {
+      "id": "lawyer-3",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1607529378676-a20456ee2f6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2OTQ5NTY2MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person smiling"
+    },
+    {
+      "id": "lawyer-4",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1560250097-0b93528c311a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHBlcnNvbnxlbnwwfHx8fDE3Njk1NTQ2NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "business person"
+    },
+    {
+      "id": "lawyer-5",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxjb3Jwb3JhdGUlMjBoZWFkc2hvdHxlbnwwfHx8fDE3Njk1NTQ2NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "corporate headshot"
+    },
+    {
+      "id": "lawyer-6",
+      "description": "Portrait of a lawyer",
+      "imageUrl": "https://images.unsplash.com/photo-1672072961700-2ad0a7646963?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjb25maWRlbnQlMjBwZXJzb258ZW58MHx8fHwxNzY5NTI2MjkxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "confident person"
+    }
+  ]
+}
