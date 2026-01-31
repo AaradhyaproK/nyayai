@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { CircleDashed, Gavel, AlertTriangle, Users, CheckCircle, Star, MapPin, ListChecks, ShieldAlert, TrendingUp, FileText } from 'lucide-react';
+import { CircleDashed, Gavel, AlertTriangle, Users, CheckCircle, Star, MapPin, ListChecks, ShieldAlert, TrendingUp, FileText, Mic, MicOff } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
@@ -36,6 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useLanguage } from '@/hooks/use-language';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils';
 
 
 const formSchema = z.object({
@@ -65,6 +66,8 @@ export default function CaseAnalysisPage() {
   const [result, setResult] = useState<CaseAnalysisOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isStartingCase, setIsStartingCase] = useState<string | null>(null);
+  const [listeningField, setListeningField] = useState<'caseDetails' | 'legalPrecedents' | null>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
@@ -72,6 +75,54 @@ export default function CaseAnalysisPage() {
   const { data: userProfile } = useDoc<UserProfile>(user ? `users/${user.uid}` : '');
   const { t } = useLanguage();
   const currentLanguage = t('languageName');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+      }
+    }
+  }, []);
+
+  const toggleListening = (fieldName: 'caseDetails' | 'legalPrecedents') => {
+    if (!recognitionRef.current) {
+      toast({ variant: "destructive", title: "Not Supported", description: "Speech recognition is not supported in this browser." });
+      return;
+    }
+
+    if (listeningField === fieldName) {
+      recognitionRef.current.stop();
+      setListeningField(null);
+    } else {
+      if (listeningField) {
+        recognitionRef.current.stop();
+      }
+      
+      const langMap: Record<string, string> = { 'English': 'en-US', 'Hindi': 'hi-IN', 'Marathi': 'mr-IN' };
+      recognitionRef.current.lang = langMap[currentLanguage] || 'en-US';
+      
+      recognitionRef.current.onstart = () => setListeningField(fieldName);
+      recognitionRef.current.onend = () => setListeningField(null);
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript) {
+            const currentVal = form.getValues(fieldName) || '';
+            const prefix = currentVal && !/\s$/.test(currentVal) ? ' ' : '';
+            form.setValue(fieldName, currentVal + prefix + finalTranscript, { shouldDirty: true, shouldValidate: true });
+        }
+      };
+      recognitionRef.current.start();
+    }
+  };
 
   const { data: allUsers, loading: lawyersLoading } = useCollection<Lawyer>('users');
   const lawyers = useMemo(() => allUsers.filter(u => u.role === 'lawyer'), [allUsers]);
@@ -183,11 +234,23 @@ export default function CaseAnalysisPage() {
                   <FormItem>
                     <FormLabel>{t('aiJudge.caseDetailsLabel')}</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder={t('aiJudge.caseDetailsPlaceholder')}
-                        className="min-h-[150px]"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Textarea
+                          placeholder={t('aiJudge.caseDetailsPlaceholder')}
+                          className="min-h-[150px] pr-12"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn("absolute top-2 right-2 h-8 w-8", listeningField === 'caseDetails' && "text-red-500 animate-pulse")}
+                          onClick={() => toggleListening('caseDetails')}
+                          title="Speak to type"
+                        >
+                          {listeningField === 'caseDetails' ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -200,11 +263,23 @@ export default function CaseAnalysisPage() {
                   <FormItem>
                     <FormLabel>{t('aiJudge.precedentsLabel')}</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder={t('aiJudge.precedentsPlaceholder')}
-                        className="min-h-[100px]"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Textarea
+                          placeholder={t('aiJudge.precedentsPlaceholder')}
+                          className="min-h-[100px] pr-12"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn("absolute top-2 right-2 h-8 w-8", listeningField === 'legalPrecedents' && "text-red-500 animate-pulse")}
+                          onClick={() => toggleListening('legalPrecedents')}
+                          title="Speak to type"
+                        >
+                          {listeningField === 'legalPrecedents' ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

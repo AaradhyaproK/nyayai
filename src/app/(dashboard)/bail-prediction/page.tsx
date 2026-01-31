@@ -218,10 +218,10 @@ export default function BailPredictionPage() {
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-0 pb-12 space-y-8">
             <div className="text-center space-y-4 pt-4">
-                <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-primary">
+                <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight lg:text-5xl text-primary">
                     {t('bailPrediction.title')}
                 </h1>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
                     {t('bailPrediction.subtitle')}
                 </p>
                 <p className="text-sm text-muted-foreground">

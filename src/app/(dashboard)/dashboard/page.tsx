@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/firebase/auth/use-user";
@@ -9,6 +9,9 @@ import { useLanguage } from '@/hooks/use-language';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList } from 'recharts';
+import { useFirestore } from "@/firebase/provider";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
 interface UserProfile {
   role: 'user' | 'lawyer' | 'judge' | 'admin';
@@ -17,7 +20,28 @@ interface UserProfile {
 
 const DashboardStats = ({ role, uid }: { role: string; uid?: string }) => {
     const { data: users, loading: usersLoading } = useCollection<UserProfile>('users');
-    const { data: cases, loading: casesLoading } = useCollection<any>('cases');
+    const firestore = useFirestore();
+    const [cases, setCases] = useState<any[]>([]);
+    const [casesLoading, setCasesLoading] = useState(true);
+
+    useEffect(() => {
+        if (!firestore) return;
+        
+        const casesRef = collection(firestore, 'cases');
+        // Fetch all cases to show platform stats
+        const q = casesRef;
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setCases(data);
+            setCasesLoading(false);
+        }, (error) => {
+            console.error("Error fetching cases:", error);
+            setCasesLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [firestore]);
 
     if (usersLoading || casesLoading) {
         return (
@@ -41,17 +65,16 @@ const DashboardStats = ({ role, uid }: { role: string; uid?: string }) => {
     const totalUsers = users?.filter(u => u.role === 'user').length || 0;
     
     // Use all cases for stats to show platform-wide data for everyone
-    const allCases = cases || [];
+    const allCases = cases;
     
     const totalCases = allCases.length;
-    const solvedCases = allCases.filter((c: any) => c.status?.toLowerCase() === 'closed').length;
-    const activeCases = allCases.filter((c: any) => c.status?.toLowerCase() === 'active').length;
-    const pendingCases = allCases.filter((c: any) => c.status?.toLowerCase() === 'pending').length;
+    const solvedCases = allCases.filter(c => c.status?.toLowerCase() === 'closed').length;
+    const activeCases = allCases.filter(c => c.status?.toLowerCase() === 'active').length;
+    const pendingCases = allCases.filter(c => c.status?.toLowerCase() === 'pending').length;
 
     const caseData = [
         { name: 'Total', value: totalCases, fill: '#8b5cf6' },
         { name: 'Active', value: activeCases, fill: '#3b82f6' },
-        { name: 'Pending', value: pendingCases, fill: '#eab308' },
         { name: 'Solved', value: solvedCases, fill: '#22c55e' },
     ];
 
@@ -90,7 +113,7 @@ const DashboardStats = ({ role, uid }: { role: string; uid?: string }) => {
                 </Card>
                 <Card className="border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-all duration-200">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Cases</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Total Cases on Platform</CardTitle>
                         <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center">
                             <ScrollText className="h-4 w-4 text-orange-600" />
                         </div>
@@ -102,14 +125,14 @@ const DashboardStats = ({ role, uid }: { role: string; uid?: string }) => {
                 </Card>
                 <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-all duration-200">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Solved Cases</CardTitle>
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Solved Cases on Platform</CardTitle>
                         <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                             <Shield className="h-4 w-4 text-green-600" />
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{solvedCases}</div>
-                        <p className="text-xs text-muted-foreground mt-1">Successfully resolved</p>
+                        <p className="text-xs text-muted-foreground mt-1">Successfully resolved on platform</p>
                     </CardContent>
                 </Card>
             </div>
@@ -359,7 +382,7 @@ const AdminDashboard = () => {
     )
 }
 
-export default function DashboardClient() {
+export default function Dashboard() {
   const { user } = useUser();
   const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(user?.uid ? `users/${user.uid}` : '');
   const { t } = useLanguage();

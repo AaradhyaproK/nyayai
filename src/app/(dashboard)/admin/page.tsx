@@ -210,7 +210,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 md:px-0 pb-12">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-primary">Admin Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Admin Dashboard</h1>
         <p className="text-muted-foreground">Platform overview and management.</p>
       </div>
 

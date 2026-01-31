@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Megaphone, AlertTriangle, CheckCircle, FileText, Scale, TrendingUp, Briefcase, Info, Users, Gavel } from 'lucide-react';
+import { Megaphone, AlertTriangle, CheckCircle, FileText, Scale, TrendingUp, Briefcase, Info, Users, Gavel, Mic, MicOff } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { analyzePil, PilAnalysisOutput } from '@/ai/flows/pil-analysis';
+import { cn } from '@/lib/utils';
 
 export default function NewPilPage() {
   const { t } = useLanguage();
@@ -30,6 +31,51 @@ export default function NewPilPage() {
   const [petitionerType, setPetitionerType] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<PilAnalysisOutput | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+      }
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast({ variant: "destructive", title: "Not Supported", description: "Speech recognition is not supported in this browser." });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      const langMap: Record<string, string> = { 'English': 'en-US', 'Hindi': 'hi-IN', 'Marathi': 'mr-IN' };
+      recognitionRef.current.lang = langMap[currentLanguage] || 'en-US';
+      recognitionRef.current.onstart = () => setIsListening(true);
+      recognitionRef.current.onend = () => setIsListening(false);
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setDescription((prev) => {
+            const prefix = prev && !/\s$/.test(prev) ? ' ' : '';
+            return prev + prefix + finalTranscript;
+          });
+        }
+      };
+      recognitionRef.current.start();
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!topic.trim()) {
@@ -67,8 +113,8 @@ export default function NewPilPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 pb-12">
       <div className="flex flex-col gap-3 text-center py-4">
-        <h1 className="text-4xl font-headline font-bold text-primary">{t('pilAnalysis.title')}</h1>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">{t('pilAnalysis.description')}</p>
+        <h1 className="text-2xl md:text-4xl font-headline font-bold text-primary">{t('pilAnalysis.title')}</h1>
+        <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">{t('pilAnalysis.description')}</p>
       </div>
 
       {/* Input Section - Full Width & Horizontal Layout */}
@@ -98,12 +144,24 @@ export default function NewPilPage() {
               <Label className="font-semibold flex items-center gap-2 text-base">
                 <Info className="w-4 h-4 text-primary" /> {t('pilAnalysis.descriptionLabel')}
               </Label>
-              <Textarea 
-                placeholder={t('pilAnalysis.descriptionPlaceholder')} 
-                className="min-h-[120px] text-base p-4 resize-y"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
+              <div className="relative">
+                <Textarea 
+                  placeholder={t('pilAnalysis.descriptionPlaceholder')} 
+                  className="min-h-[120px] text-base p-4 resize-y pr-12"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={cn("absolute top-2 right-2 h-8 w-8", isListening && "text-red-500 animate-pulse")}
+                  onClick={toggleListening}
+                  title="Speak to type"
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
