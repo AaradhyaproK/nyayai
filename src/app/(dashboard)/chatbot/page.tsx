@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { CornerDownLeft, Languages, Mic, CircleDashed, User, Bot } from 'lucide-react';
+import { CornerDownLeft, Languages, Mic, CircleDashed, User, Bot, Volume2, MicOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,16 +31,60 @@ export default function ChatbotPage() {
   const [language, setLanguage] = useState('English');
   const [isLoading, setIsLoading] = useState(false);
   const [useVoice, setUseVoice] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTo(0, scrollAreaRef.current.scrollHeight);
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+      }
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Supported',
+        description: 'Speech recognition is not supported in this browser.',
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      const langMap: Record<string, string> = {
+        'English': 'en-US',
+        'Hindi': 'hi-IN',
+        'Marathi': 'mr-IN'
+      };
+      recognitionRef.current.lang = langMap[language] || 'en-US';
+
+      recognitionRef.current.onstart = () => setIsListening(true);
+      recognitionRef.current.onend = () => setIsListening(false);
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+      };
+      recognitionRef.current.start();
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -99,7 +143,7 @@ export default function ChatbotPage() {
             onClick={() => setUseVoice(!useVoice)}
             aria-label="Toggle voice output"
           >
-            <Mic className="h-4 w-4" />
+            <Volume2 className="h-4 w-4" />
           </Button>
         </div>
       </header>
@@ -161,20 +205,32 @@ export default function ChatbotPage() {
                 handleSendMessage();
               }
             }}
-            className="pr-16 min-h-[48px] resize-none"
+            className="pr-24 min-h-[48px] resize-none"
             rows={1}
             disabled={isLoading}
           />
-          <Button
-            type="submit"
-            size="icon"
-            className="absolute top-1/2 right-3 -translate-y-1/2"
-            onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
-          >
-            <CornerDownLeft className="w-4 h-4" />
-            <span className="sr-only">Send</span>
-          </Button>
+          <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn("h-8 w-8", isListening && "text-red-500 animate-pulse")}
+              onClick={toggleListening}
+              disabled={isLoading}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </Button>
+            <Button
+              type="submit"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleSendMessage}
+              disabled={isLoading || !input.trim()}
+            >
+              <CornerDownLeft className="w-4 h-4" />
+              <span className="sr-only">Send</span>
+            </Button>
+          </div>
         </div>
       </div>
       <audio ref={audioRef} className="hidden" />
